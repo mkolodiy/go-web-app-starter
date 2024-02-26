@@ -1,0 +1,45 @@
+package components
+
+import "fmt"
+
+type InputProps struct {
+	// Required
+	Name string
+	// Required
+	Placeholder string
+	// Optional
+	Value string
+	// Optional. Default is "text"
+	Type string
+	// Optional
+	Class string
+}
+
+func (p InputProps) toAttrs() templ.Attributes {
+	attrs := templ.Attributes{
+		"name":        p.Name,
+		"placeholder": p.Placeholder,
+	}
+
+	if p.Value != "" {
+		attrs["value"] = p.Value
+	}
+
+	if p.Type == "" {
+		attrs["type"] = "text"
+	} else {
+		attrs["type"] = p.Type
+	}
+
+	if p.Class == "" {
+		attrs["class"] = "input input-bordered w-full"
+	} else {
+		attrs["class"] = fmt.Sprintf("input input-bordered w-full %s", p.Class)
+	}
+
+	return attrs
+}
+
+templ Input(props InputProps) {
+	<input { props.toAttrs()... }/>
+}

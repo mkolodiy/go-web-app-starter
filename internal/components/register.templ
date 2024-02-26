@@ -1,0 +1,163 @@
+package components
+
+templ Register(contents... templ.Component) {
+	@Index() {
+		@MainCenteredContent() {
+			<section class="card w-96 bg-base-100 shadow">
+				<div class="card-body gap-4">
+					<h1 class="card-title">Register</h1>
+					if contents != nil {
+						for _, content := range contents {
+							@content
+						}
+					} else {
+						@RegisterForm() {
+							@RegisterFirstName(RegisterFirstNameProps{})
+							@RegisterLastName(RegisterLastNameProps{})
+							@RegisterEmail(RegisterEmailProps{})
+							@RegisterPassword(RegisterPasswordProps{})
+						}
+					}
+					<p>Already have an account? <a href="/login" class="link">Log in</a></p>
+				</div>
+			</section>
+		}
+	}
+}
+
+templ RegisterForm(contents... templ.Component) {
+	<form class="flex flex-col gap-4" hx-post="/register" hx-swap="outerHTML" action="/register" method="post">
+		if contents != nil {
+			for _, content := range contents {
+				@content
+			}
+		} else {
+			{ children... }
+		}
+		<button type="submit" class="btn btn-primary text-white">Register</button>
+	</form>
+}
+
+type RegisterFirstNameProps struct {
+	ErrorMessage string
+	Value        string
+}
+
+templ RegisterFirstName(props RegisterFirstNameProps) {
+	<label id="registerFirstName" class="form-control w-full">
+		<div class="label">
+			<span class="label-text">What is your first name?</span>
+		</div>
+		<input
+			type="text"
+			name="firstName"
+			placeholder="First Name"
+			if props.ErrorMessage != "" {
+				class="input input-bordered w-full input-error"
+			} else {
+				class="input input-bordered w-full"
+			}
+			if props.Value != "" {
+				value={ props.Value }
+			}
+		/>
+		if props.ErrorMessage != "" {
+			<div class="label">
+				<span class="label-text-alt">{ props.ErrorMessage }</span>
+			</div>
+		}
+	</label>
+}
+
+type RegisterLastNameProps struct {
+	ErrorMessage string
+	Value        string
+}
+
+templ RegisterLastName(props RegisterLastNameProps) {
+	<label id="registerLastName" class="form-control w-full">
+		<div class="label">
+			<span class="label-text">What is your last name?</span>
+		</div>
+		<input
+			type="text"
+			name="lastName"
+			placeholder="Last Name"
+			if props.ErrorMessage != "" {
+				class="input input-bordered w-full input-error"
+			} else {
+				class="input input-bordered w-full"
+			}
+			if props.Value != "" {
+				value={ props.Value }
+			}
+		/>
+		if props.ErrorMessage != "" {
+			<div class="label">
+				<span class="label-text-alt">{ props.ErrorMessage }</span>
+			</div>
+		}
+	</label>
+}
+
+type RegisterEmailProps struct {
+	ErrorMessage string
+	Value        string
+}
+
+templ RegisterEmail(props RegisterEmailProps) {
+	<label id="registerEmail" class="form-control w-full">
+		<div class="label">
+			<span class="label-text">What is your email?</span>
+		</div>
+		<input
+			type="email"
+			name="email"
+			placeholder="Email"
+			if props.ErrorMessage != "" {
+				class="input input-bordered w-full input-error"
+			} else {
+				class="input input-bordered w-full"
+			}
+			if props.Value != "" {
+				value={ props.Value }
+			}
+		/>
+		if props.ErrorMessage != "" {
+			<div class="label">
+				<span class="label-text-alt">{ props.ErrorMessage }</span>
+			</div>
+		}
+	</label>
+}
+
+type RegisterPasswordProps struct {
+	ErrorMessage string
+	Value        string
+}
+
+templ RegisterPassword(props RegisterPasswordProps) {
+	<label id="registerPassword" class="form-control w-full">
+		<div class="label">
+			<span class="label-text">What is your password?</span>
+		</div>
+		<input
+			type="password"
+			name="password"
+			placeholder="Password"
+			if props.ErrorMessage != "" {
+				class="input input-bordered w-full input-error"
+			} else {
+				class="input input-bordered w-full"
+			}
+			if props.Value != "" {
+				value={ props.Value }
+			}
+		/>
+		if props.ErrorMessage != "" {
+			<div class="label">
+				<span class="label-text-alt">{ props.ErrorMessage }</span>
+			</div>
+		}
+	</label>
+}

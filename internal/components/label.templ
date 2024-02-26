@@ -1,0 +1,22 @@
+package components
+
+templ Label() {
+	<div class="label">
+		{ children... }
+	</div>
+}
+
+type LabelProps struct {
+	// Required
+	Label string
+	// Optional. Default: false
+	Small bool
+}
+
+templ LabelText(props LabelProps) {
+	if props.Small {
+		<span class="label-text-alt">{ props.Label }</span>
+	} else {
+		<span class="label-text">{ props.Label }</span>
+	}
+}

@@ -1,0 +1,40 @@
+package components
+
+templ Index() {
+	<!DOCTYPE html>
+	<html lang="en" class="h-full">
+		<head>
+			<meta charset="UTF-8"/>
+			<link rel="icon" type="image/svg+xml" href="/vite.svg"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<title>Posts</title>
+			<link href="/assets/output.css" rel="stylesheet"/>
+			<script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
+		</head>
+		<body class="flex flex-col h-full w-full" hx-boost="true">
+			{ children... }
+			<div id="toasts" class="toast toast-end">
+			</div>
+		</body>
+	</html>
+}
+
+templ Header() {
+	<header class="bg-slate-100 shadow pt-2 pb-2 p-4 z-10">
+		<nav class="flex justify-end">
+			<a class="btn btn-ghost btn-sm normal-case text-base" href="/logout">Log out</a>
+		</nav>
+	</header>
+}
+
+templ Main() {
+	<main class="flex-1 w-full container mx-aut">
+		{ children... }
+	</main>
+}
+
+templ MainCenteredContent() {
+	<main class="flex-1 flex justify-center items-center w-full container mx-auto">
+		{ children... }
+	</main>
+}
