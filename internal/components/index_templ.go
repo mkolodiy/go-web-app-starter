@@ -23,7 +23,7 @@ func Index() templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<!doctype html><html lang=\"en\" class=\"h-full\"><head><meta charset=\"UTF-8\"><link rel=\"icon\" type=\"image/svg+xml\" href=\"/vite.svg\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Posts</title><link href=\"/assets/output.css\" rel=\"stylesheet\"><script src=\"https://unpkg.com/htmx.org@1.9.10\" integrity=\"sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC\" crossorigin=\"anonymous\"></script></head><body class=\"flex flex-col h-full w-full\" hx-boost=\"true\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<!doctype html><html lang=\"en\" class=\"h-full\"><head><meta charset=\"UTF-8\"><link rel=\"icon\" type=\"image/svg+xml\" href=\"/vite.svg\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><title>Posts</title><link href=\"/assets/output.css\" rel=\"stylesheet\"><script src=\"https://unpkg.com/htmx.org@1.9.10\" integrity=\"sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC\" crossorigin=\"anonymous\"></script></head><body class=\"flex flex-col h-full w-full\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -55,7 +55,7 @@ func Header() templ.Component {
 			templ_7745c5c3_Var2 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<header class=\"bg-slate-100 shadow pt-2 pb-2 p-4 z-10\"><nav class=\"flex justify-end\"><a class=\"btn btn-ghost btn-sm normal-case text-base\" href=\"/logout\">Log out</a></nav></header>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<header class=\"bg-slate-100 shadow pt-2 pb-2 p-4 z-10\"><nav class=\"flex justify-end\"><form hx-post=\"/logout\" action=\"/logout\" method=\"post\"><button class=\"btn btn-ghost btn-sm normal-case text-base\" type=\"submit\">Log out</button></form></nav></header>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

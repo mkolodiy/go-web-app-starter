@@ -11,10 +11,9 @@ templ Index() {
 			<link href="/assets/output.css" rel="stylesheet"/>
 			<script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
 		</head>
-		<body class="flex flex-col h-full w-full" hx-boost="true">
+		<body class="flex flex-col h-full w-full">
 			{ children... }
-			<div id="toasts" class="toast toast-end">
-			</div>
+			<div id="toasts" class="toast toast-end"></div>
 		</body>
 	</html>
 }
@@ -22,7 +21,9 @@ templ Index() {
 templ Header() {
 	<header class="bg-slate-100 shadow pt-2 pb-2 p-4 z-10">
 		<nav class="flex justify-end">
-			<a class="btn btn-ghost btn-sm normal-case text-base" href="/logout">Log out</a>
+			<form hx-post="/logout" action="/logout" method="post">
+				<button class="btn btn-ghost btn-sm normal-case text-base" type="submit">Log out</button>
+			</form>
 		</nav>
 	</header>
 }

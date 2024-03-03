@@ -6,7 +6,7 @@ templ Login() {
 			<section class="card w-96 bg-base-100 shadow">
 				<div class="card-body gap-4">
 					<h1 class="card-title">Login</h1>
-					<form class="flex flex-col gap-4" hx-post="/login">
+					<form class="flex flex-col gap-4" hx-post="/login" action="/login" method="post">
 						<label class="form-control w-full max-w-xs">
 							<div class="label">
 								<span class="label-text">What is your email?</span>

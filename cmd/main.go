@@ -1,8 +1,12 @@
 package main
 
 import (
+	"context"
+	"database/sql"
 	"errors"
 	"fmt"
+	"log"
+	"net"
 	"net/http"
 	"time"
 
@@ -31,11 +35,29 @@ type UserData struct {
 }
 
 func main() {
+	ctx := context.Background()
+
 	fmt.Println("start")
-	sqlDb, err := db.Setup()
+	sqlDb, err := db.Setup(ctx)
 	if err != nil {
 		fmt.Println(err)
 	}
+
+	ticker := time.NewTicker(10 * time.Second)
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				fmt.Println("remove sessions")
+				err := db.CleanUpSessions(ctx, sqlDb)
+				if err != nil {
+					log.Default().Println(err)
+				}
+			}
+		}
+	}()
 
 	en := en.New()
 	uni = ut.New(en, en)
@@ -80,11 +102,39 @@ func main() {
 	// })
 
 	r.Group(func(r chi.Router) {
+		// Process with the request if
+		// - the cookie is not present
+		// - the cookie is not valid or the value is empty
+		// - the session is not in the DB
+		// - the session is expired
+		// - there are general errors
+		// otherwise redirect to the homepage
 		r.Use(func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				sessionCookie, err := r.Cookie("session_id")
 				if errors.Is(err, http.ErrNoCookie) {
+					log.Default().Println("session cookie not there show login page")
 					fmt.Println("session cookie not there show login page")
+					next.ServeHTTP(w, r)
+					return
+				}
+				if err != nil {
+					fmt.Println(err)
+					// TODO: Show a toast message in the FE
+					return
+				}
+
+				err = sessionCookie.Valid()
+				if err != nil || sessionCookie.Value == "" {
+					log.Default().Println("session cookie is not valid")
+					next.ServeHTTP(w, r)
+					return
+				}
+
+				sessionID := sessionCookie.Value
+				session, err := db.GetSession(sqlDb, sessionID)
+				if errors.Is(err, sql.ErrNoRows) {
+					fmt.Println(err)
 					next.ServeHTTP(w, r)
 					return
 				}
@@ -92,13 +142,7 @@ func main() {
 					fmt.Println(err)
 				}
 
-				sessionID := sessionCookie.Value
-				session, err := db.GetSession(sqlDb, sessionID)
-				if err != nil {
-					fmt.Println(err)
-				}
-
-				fmt.Println(session)
+				fmt.Println("session", session)
 				if session.Expires.Before(time.Now()) {
 					// Remove sessions from DB
 					fmt.Println("session not valid anymore")
@@ -217,6 +261,7 @@ func main() {
 		r.Get("/login", templ.Handler(components.Login()).ServeHTTP)
 
 		r.Post("/login", func(w http.ResponseWriter, r *http.Request) {
+			fmt.Println("/login")
 			isHTMXRequest := r.Header.Get("HX-Request") == "true"
 
 			email := r.FormValue("email")
@@ -241,7 +286,7 @@ func main() {
 
 			// Session
 			sessionID := uuid.NewString()
-			expires := time.Now().Add(10 * time.Minute)
+			expires := time.Now().Add(30 * time.Second)
 			err = db.InsertSession(sqlDb, db.Session{
 				SessionID: sessionID,
 				UserID:    user.ID,
@@ -251,7 +296,7 @@ func main() {
 			if err != nil {
 				fmt.Println(err)
 			}
-			sessionCookie := http.Cookie{
+			sessionCookie := &http.Cookie{
 				Name:     "session_id",
 				Value:    sessionID,
 				Expires:  expires,
@@ -259,7 +304,7 @@ func main() {
 				HttpOnly: true,
 				SameSite: http.SameSiteLaxMode,
 			}
-			w.Header().Add("Set-Cookie", sessionCookie.String())
+			http.SetCookie(w, sessionCookie)
 
 			if isHTMXRequest {
 				w.Header().Set("HX-Redirect", "/")
@@ -270,24 +315,99 @@ func main() {
 	})
 
 	r.Group(func(r chi.Router) {
+		// Redirect to the login page if
+		// - the cookie is not present
+		// - the cookie is not valid or is empty
+		// - the session is not in the DB
+		// - the session is expired
+		// - there are general errors
+		// otherwise proceed with the request
 		r.Use(func(next http.Handler) http.Handler {
 			return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				sessionCookie, err := r.Cookie("session_id")
 				if errors.Is(err, http.ErrNoCookie) {
-					fmt.Println("redirect")
+					fmt.Println("redirect ####")
 					http.Redirect(w, r, "/login", http.StatusFound)
 					return
 				}
 				if err != nil {
 					fmt.Println(err)
+					// TODO: Show a toast with an error in the UI
+					http.Redirect(w, r, "/login", http.StatusFound)
+					return
 				}
-				fmt.Println("sessionCookie", sessionCookie)
+				err = sessionCookie.Valid()
+				if err != nil || sessionCookie.Value == "" {
+					fmt.Println(err)
+					fmt.Println("redirect ####")
+					http.Redirect(w, r, "/login", http.StatusFound)
+					return
+				}
+
+				sessionID := sessionCookie.Value
+				session, err := db.GetSession(sqlDb, sessionID)
+				if errors.Is(err, sql.ErrNoRows) {
+					http.Redirect(w, r, "/login", http.StatusFound)
+					return
+				}
+				if err != nil {
+					// TODO: Show a toast with an error in the UI
+					http.Redirect(w, r, "/login", http.StatusFound)
+					return
+				}
+
+				if session.Expires.Before(time.Now()) {
+					err = db.RemoveSession(sqlDb, sessionID)
+					if err != nil {
+						log.Default().Println(err)
+					}
+					http.Redirect(w, r, "/login", http.StatusFound)
+					return
+				}
+
 				next.ServeHTTP(w, r)
 			})
 		})
 
 		r.Get("/", templ.Handler(components.Home()).ServeHTTP)
+
+		r.Post("/logout", func(w http.ResponseWriter, r *http.Request) {
+			isHTMXRequest := r.Header.Get("HX-Request") == "true"
+
+			sessionCookie, err := r.Cookie("session_id")
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			err = db.RemoveSession(sqlDb, sessionCookie.Value)
+			if err != nil {
+				fmt.Println(err)
+			}
+
+			sessionCookie = &http.Cookie{
+				Name:     "session_id",
+				MaxAge:   -1,
+				Secure:   true,
+				HttpOnly: true,
+				SameSite: http.SameSiteLaxMode,
+			}
+			http.SetCookie(w, sessionCookie)
+
+			fmt.Println("/logout", isHTMXRequest)
+			if isHTMXRequest {
+				w.Header().Set("HX-Redirect", "/login")
+			} else {
+				http.Redirect(w, r, "/login", http.StatusFound)
+			}
+		})
 	})
 
-	http.ListenAndServe(":3000", r)
+	srv := &http.Server{
+		Addr:    ":3000",
+		Handler: r,
+		BaseContext: func(l net.Listener) context.Context {
+			return ctx
+		},
+	}
+	srv.ListenAndServe()
 }

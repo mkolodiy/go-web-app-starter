@@ -1,6 +1,7 @@
 package db
 
 import (
+	"context"
 	"database/sql"
 	"time"
 )
@@ -46,5 +47,10 @@ func GetSession(db *sql.DB, sessionID string) (*Session, error) {
 
 func RemoveSession(db *sql.DB, sessionID string) error {
 	_, err := db.Exec("DELETE FROM sessions WHERE session_id = ?;", sessionID)
+	return err
+}
+
+func CleanUpSessions(ctx context.Context, db *sql.DB) error {
+	_, err := db.ExecContext(ctx, "DELETE FROM sessions WHERE expires < unixepoch();")
 	return err
 }
