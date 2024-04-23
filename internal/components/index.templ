@@ -10,6 +10,7 @@ templ Index() {
 			<title>Posts</title>
 			<link href="/assets/output.css" rel="stylesheet"/>
 			<script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
+			<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 		</head>
 		<body class="flex flex-col h-full w-full">
 			{ children... }
@@ -29,7 +30,7 @@ templ Header() {
 }
 
 templ Main() {
-	<main class="flex-1 w-full container mx-aut">
+	<main class="flex-1 w-full container mx-auto">
 		{ children... }
 	</main>
 }
@@ -38,4 +39,11 @@ templ MainCenteredContent() {
 	<main class="flex-1 flex justify-center items-center w-full container mx-auto">
 		{ children... }
 	</main>
+}
+
+// Helper component to render multiple (unrelated) components
+templ RenderComponents(contents... templ.Component) {
+	for _, content := range contents {
+		@content
+	}
 }

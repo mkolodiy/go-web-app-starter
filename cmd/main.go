@@ -17,6 +17,7 @@ import (
 	"github.com/go-playground/validator/v10"
 	en_translations "github.com/go-playground/validator/v10/translations/en"
 	"github.com/google/uuid"
+	"github.com/mkolodiy/go-web-app-starter/internal"
 	"github.com/mkolodiy/go-web-app-starter/internal/components"
 	"github.com/mkolodiy/go-web-app-starter/internal/db"
 	"golang.org/x/crypto/bcrypt"
@@ -43,7 +44,7 @@ func main() {
 		fmt.Println(err)
 	}
 
-	ticker := time.NewTicker(10 * time.Second)
+	ticker := time.NewTicker(10 * time.Minute)
 	go func() {
 		for {
 			select {
@@ -115,6 +116,7 @@ func main() {
 				if errors.Is(err, http.ErrNoCookie) {
 					log.Default().Println("session cookie not there show login page")
 					fmt.Println("session cookie not there show login page")
+					fmt.Println("auth routes")
 					next.ServeHTTP(w, r)
 					return
 				}
@@ -127,6 +129,7 @@ func main() {
 				err = sessionCookie.Valid()
 				if err != nil || sessionCookie.Value == "" {
 					log.Default().Println("session cookie is not valid")
+					fmt.Println("auth routes")
 					next.ServeHTTP(w, r)
 					return
 				}
@@ -135,6 +138,7 @@ func main() {
 				session, err := db.GetSession(sqlDb, sessionID)
 				if errors.Is(err, sql.ErrNoRows) {
 					fmt.Println(err)
+					fmt.Println("auth routes")
 					next.ServeHTTP(w, r)
 					return
 				}
@@ -150,16 +154,20 @@ func main() {
 					if err != nil {
 						fmt.Println(err)
 					}
+					fmt.Println("auth routes")
 					next.ServeHTTP(w, r)
 					return
 				}
 
+				fmt.Println("home route")
 				http.Redirect(w, r, "/", http.StatusFound)
 			})
 		})
 
 		r.Get("/register", templ.Handler(components.Register()).ServeHTTP)
 		r.Post("/register", func(w http.ResponseWriter, r *http.Request) {
+			// r.ParseForm()
+			// r.PostForm.Get()
 			userData := UserData{
 				FirstName: r.FormValue("firstName"),
 				LastName:  r.FormValue("lastName"),
@@ -167,9 +175,34 @@ func main() {
 				Password:  r.FormValue("password"),
 			}
 
+			err := r.ParseForm()
+			if err != nil {
+				fmt.Println(err)
+			}
+			f, err := internal.PopulateForm(internal.RegisterForm{}, r.PostForm)
+			if err != nil {
+				fmt.Println(err)
+			}
+			fmt.Println("form", f)
+
 			isHTMXRequest := r.Header.Get("HX-Request") == "true"
 
 			errs := validate.Struct(userData)
+
+			fields := []templ.Component{
+				components.RegisterFirstName(components.RegisterFirstNameProps{
+					Value: userData.FirstName,
+				}),
+				components.RegisterLastName(components.RegisterLastNameProps{
+					Value: userData.LastName,
+				}),
+				components.RegisterEmail(components.RegisterEmailProps{
+					Value: userData.Email,
+				}),
+				components.RegisterPassword(components.RegisterPasswordProps{
+					Value: userData.Password,
+				}),
+			}
 
 			if errs != nil {
 				valErrs := errs.(validator.ValidationErrors)
@@ -178,7 +211,7 @@ func main() {
 					fmtErrs[valErr.Field()] = valErr.Translate(trans)
 
 				}
-				fields := []templ.Component{
+				fields = []templ.Component{
 					components.RegisterFirstName(components.RegisterFirstNameProps{
 						Value:        userData.FirstName,
 						ErrorMessage: fmtErrs["FirstName"],
@@ -225,7 +258,8 @@ func main() {
 			// TODO
 			if err != nil {
 				fmt.Println("SOME ERROR", err)
-				components.Toast(components.ToastProps{Message: "Something went wrong", Type: components.ToastError}).Render(r.Context(), w)
+				contents := components.RenderComponents(components.RegisterForm(fields...), components.Toast(components.ToastProps{Message: "Something went wrong", Type: components.ToastError}))
+				contents.Render(r.Context(), w)
 				return
 			}
 
@@ -286,7 +320,7 @@ func main() {
 
 			// Session
 			sessionID := uuid.NewString()
-			expires := time.Now().Add(30 * time.Second)
+			expires := time.Now().Add(10 * time.Minute)
 			err = db.InsertSession(sqlDb, db.Session{
 				SessionID: sessionID,
 				UserID:    user.ID,
@@ -365,6 +399,7 @@ func main() {
 					return
 				}
 
+				fmt.Println("protected routes")
 				next.ServeHTTP(w, r)
 			})
 		})

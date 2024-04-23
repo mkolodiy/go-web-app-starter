@@ -4,7 +4,35 @@ templ Home() {
 	@Index() {
 		@Header()
 		@Main() {
-			<h1>Welcome to the home page</h1>
+			<section>
+				<div class="py-4 flex justify-between gap-2">
+					<div class="flex-auto">
+						<h1 class="text-4xl font-bold">Posts</h1>
+						<div class="divider p-0 m-0"></div>
+					</div>
+					<button class="btn btn-primary">New post</button>
+				</div>
+				<div class="flex flex-col gap-4">
+					<div class="card bg-base-100 shadow">
+						<div class="card-body p-4">
+							<h2 class="card-title">Post 1</h2>
+							<p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
+							<div class="card-actions justify-end">
+								<button class="btn btn-primary">Like</button>
+							</div>
+						</div>
+					</div>
+					<div class="card bg-base-100 shadow">
+						<div class="card-body p-4">
+							<h2 class="card-title">Post 2</h2>
+							<p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet.</p>
+							<div class="card-actions justify-end">
+								<button class="btn btn-primary">Like</button>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
 		}
 	}
 }
